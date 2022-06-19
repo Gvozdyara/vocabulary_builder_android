@@ -12,15 +12,32 @@ class TranslateBtn(Button):
  that returns available language pairs
     '''
     def __init__(self):
-        super().__init__(frame_btn, bg="#66CDAA", fg='#ffffff', activebackground='#ACFDF8', relief=FLAT, borderwidth=1, text="Translate", command=self.select_lang_pair)
-        with open("dictapi.txt", "r") as f:
-            self.api_key = f.read()
-        self.api_key 
+        super().__init__(frame_btn, bg="#66CDAA", fg='#ffffff', activebackground='#ACFDF8',
+                         relief=FLAT, borderwidth=1, text="TRANSLATE", command=self.select_lang_pair)
+        self.lang_pair = StringVar()
+        self.num_of_translated = IntVar()
+        self.num_of_translated.set(100)
+        try:
+            with open("dictapi.txt", "r") as f:
+                self.api_key = f.read()
+        except:
+            pass
 
     def select_lang_pair(self):
+        btn_analyze['state'] = DISABLED
+        btn_merge['state'] = DISABLED
+        btn_help['state'] = DISABLED
+        btn_get_unknown_words['state'] = DISABLED
+        btn_translate["state"] = DISABLED
+
+        lbl_warning.configure(text='Wait till completed')
+        lbl_warning.update()
+
+
         lang_pairs_list = json.loads(yadict.get_lang_pair(self.api_key).text)
         self.lang_selector = Toplevel()
-        self.lang_pair = StringVar()
+
+        self.lang_pair.set("en-ru")
         col=0
         r=0
         for i in lang_pairs_list:
@@ -42,14 +59,27 @@ class TranslateBtn(Button):
             words = f.read().splitlines()
         
         self.translated_words = list()
-        for i in words[:5]:
-            i = i.split(",")
-            print(i)
-            yadict.translate(i[1], self.lang_pair.get(),
-                             self.translated_words, self.api_key)
+        try:
+            for i in words[:self.num_of_translated.get()]:
+                i = i.split(",")
+                print(i)
+                yadict.translate(i[1], self.lang_pair.get(),
+                                 self.translated_words, self.api_key)
+        except IndexError:
+            pass
             
         with open("translated words.txt", "w", encoding="utf8") as f:
             f.writelines(self.translated_words)
+
+        window_output = 'Completed'
+        lbl_run_status.config(text=window_output)
+        lbl_run_status.update()
+
+        btn_analyze['state'] = NORMAL
+        btn_merge['state'] = NORMAL
+        btn_help['state'] = NORMAL
+        btn_get_unknown_words['state'] = NORMAL
+        btn_translate["state"] = NORMAL
 
 # opens a window with the text from help.txt
 def get_info():
@@ -58,7 +88,7 @@ def get_info():
             help_text=f.read()
         window_help = tk.Tk()
         window_help.title('Help')
-        lbl_help = Label(window_help, text=help_text, bg='#ACFDF8', justify=LEFT, fg='#228987')
+        lbl_help = Label(window_help, text=help_text, bg='White', justify=LEFT, fg='Black')
         lbl_help.pack()
     except:
         window_help = tk.Tk()
@@ -180,7 +210,7 @@ def merge():
 
     list_to_write = list()
     for key in base_dict:
-        list_to_write.append(((base_dict.get(key), key)))
+        list_to_write.append(base_dict.get(key), key)
 
     list_to_write.sort(key=lambda i:i[0], reverse=True)
 
@@ -198,6 +228,7 @@ def merge_click():
     btn_merge['state'] = DISABLED
     btn_help['state'] = DISABLED
     btn_get_unknown_words['state'] = DISABLED
+    btn_translate["state"] = DISABLED
 
     lbl_warning.configure(text='Wait till completed')
     lbl_warning.update()
@@ -219,10 +250,12 @@ def merge_click():
     btn_merge['state'] = NORMAL
     btn_help['state'] = NORMAL
     btn_get_unknown_words['state'] = NORMAL
+    btn_translate["state"] = NORMAL
 
 
 # takes list of known words and returns list of unknown words
 def make_list_unknown_words():
+
     with open("base.txt", 'r', encoding="utf8") as file:
         base_list = [item for item in file.read().split("\n")]
     count_old = []
@@ -265,6 +298,7 @@ def make_list_unknown_words_clicked():
     btn_merge['state'] = DISABLED
     btn_help['state'] = DISABLED
     btn_get_unknown_words['state'] = DISABLED
+    btn_translate["state"] = DISABLED
 
     lbl_warning.configure(text='Wait till completed')
     lbl_warning.update()
@@ -280,12 +314,12 @@ def make_list_unknown_words_clicked():
     window_output = 'Completed'
     lbl_run_status.config(text=window_output)
     lbl_run_status.update()
-    time.sleep(0.5)
 
     btn_analyze['state'] = NORMAL
     btn_merge['state'] = NORMAL
     btn_help['state'] = NORMAL
     btn_get_unknown_words['state'] = NORMAL
+    btn_translate["state"] = NORMAL
 
 
 # starts the process of the text analysis
@@ -347,7 +381,7 @@ def run_analyze():
 if __name__ == "__main__":
     try:
         root = Tk()
-        root.title("Vocabulary Builder v. 2.3 by Cafe p\'Aguantarme")
+        root.title("Vocabulary Builder v. 3.0 by Cafe p\'Aguantarme")
         root.config(bg='White')
 
         root.iconbitmap('logo.ico')
@@ -364,19 +398,19 @@ if __name__ == "__main__":
         frame_btn.pack(side=TOP, fill=X)
         btn_help = Button(frame_btn, bg="#66CDAA", text='HELP', fg='#ffffff', activebackground='#ACFDF8',
                           command=get_info, relief=FLAT, borderwidth=1)
-        btn_help.pack()
+        btn_help.pack(fill=X)
         btn_analyze = Button(frame_btn, text='ANALYZE', bg="#66CDAA", fg='#ffffff', activebackground='#ACFDF8',
                              command=lambda: run_analyze(), relief=FLAT, borderwidth=1)
-        btn_analyze.pack()
+        btn_analyze.pack(fill=X)
         btn_merge = Button(frame_btn, bg="#66CDAA", fg='#ffffff', activebackground='#ACFDF8',
                            text="MERGE", relief=FLAT, borderwidth=1, command=lambda: merge_click())
-        btn_merge.pack()
+        btn_merge.pack(fill=X)
         btn_get_unknown_words = Button(frame_btn, bg="#66CDAA", fg='#ffffff', activebackground='#ACFDF8',
                            text="NEW WORDS", relief=FLAT, borderwidth=1, command=lambda: make_list_unknown_words_clicked())
-        btn_get_unknown_words.pack()
+        btn_get_unknown_words.pack(fill=X)
 
         btn_translate = TranslateBtn()
-        btn_translate.pack()
+        btn_translate.pack(fill=X)
 
         root.resizable(False, False)
         root.mainloop()
