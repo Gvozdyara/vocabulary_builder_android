@@ -6,6 +6,7 @@ import json
 import tkinter as tk
 
 
+
 class TranslateBtn(Button):
     '''
     Tkinter button that call get_lang_pair from yadict
@@ -30,9 +31,11 @@ class TranslateBtn(Button):
         btn_get_unknown_words['state'] = DISABLED
         btn_translate["state"] = DISABLED
 
-        lbl_warning.configure(text='Wait till completed')
-        lbl_warning.update()
+        lbl_run_status_var.set('Wait till completed')
+        lbl_run_status.update()
 
+        lbl_status_var.set("Translating...")
+        lbl_status.update()
 
         lang_pairs_list = json.loads(yadict.get_lang_pair(self.api_key).text)
         self.lang_selector = Toplevel()
@@ -60,11 +63,13 @@ class TranslateBtn(Button):
         
         self.translated_words = list()
         try:
-            for i in words[:self.num_of_translated.get()]:
+            for ind, i in enumerate(words[:self.num_of_translated.get()]):
                 i = i.split(",")
                 print(i)
                 yadict.translate(i[1], self.lang_pair.get(),
                                  self.translated_words, self.api_key)
+                lbl_status_var.set(f"Translating {ind+1} of {self.num_of_translated.get()}")
+                lbl_status.update()
         except IndexError:
             pass
             
@@ -72,8 +77,11 @@ class TranslateBtn(Button):
             f.writelines(self.translated_words)
 
         window_output = 'Completed'
-        lbl_run_status.config(text=window_output)
+        lbl_run_status_var.set(window_output)
         lbl_run_status.update()
+
+        lbl_status_var.set(" ")
+        lbl_status.update()
 
         btn_analyze['state'] = NORMAL
         btn_merge['state'] = NORMAL
@@ -87,6 +95,7 @@ def get_info():
         with open("help.txt", "r", encoding="utf8") as f:
             help_text=f.read()
         window_help = tk.Tk()
+        window_help.config(bg='White')
         window_help.title('Help')
         lbl_help = Label(window_help, text=help_text, bg='White', justify=LEFT, fg='Black')
         lbl_help.pack()
@@ -210,7 +219,7 @@ def merge():
 
     list_to_write = list()
     for key in base_dict:
-        list_to_write.append(base_dict.get(key), key)
+        list_to_write.append((base_dict.get(key), key))
 
     list_to_write.sort(key=lambda i:i[0], reverse=True)
 
@@ -230,8 +239,11 @@ def merge_click():
     btn_get_unknown_words['state'] = DISABLED
     btn_translate["state"] = DISABLED
 
-    lbl_warning.configure(text='Wait till completed')
-    lbl_warning.update()
+    lbl_status_var.set('Merging base and output_new')
+    lbl_status.update()
+
+    lbl_run_status_var.set('Wait till completed')
+    lbl_run_status.update()
 
     try:
         merge()
@@ -242,8 +254,11 @@ def merge_click():
         lbl_help.pack()
 
     window_output = 'Completed'
-    lbl_run_status.config(text=window_output)
+    lbl_run_status_var.set(window_output)
     lbl_run_status.update()
+
+    lbl_status_var.set(' ')
+    lbl_status.update()
     time.sleep(0.5)
 
     btn_analyze['state'] = NORMAL
@@ -300,20 +315,27 @@ def make_list_unknown_words_clicked():
     btn_get_unknown_words['state'] = DISABLED
     btn_translate["state"] = DISABLED
 
-    lbl_warning.configure(text='Wait till completed')
-    lbl_warning.update()
+    lbl_run_status_var.set('Wait till completed')
+    lbl_run_status.update()
+
+    lbl_status_var.set("Searching for unknown words...")
+    lbl_status.update()
+
     time.sleep(0.5)
     try:
         make_list_unknown_words()
-    except:
+    except Exception as e:
         window_help = tk.Tk()
         window_help.title('Error')
-        lbl_help = Label(window_help, text="Something is wrong. Check help.txt, each file must exist", justify=LEFT)
+        lbl_help = Label(window_help, text=f"Something is wrong. Check help.txt, each file must exist\n{e}", justify=LEFT)
         lbl_help.pack()
 
     window_output = 'Completed'
-    lbl_run_status.config(text=window_output)
+    lbl_run_status_var.set(window_output)
     lbl_run_status.update()
+
+    lbl_status_var.set(" ")
+    lbl_status.update()
 
     btn_analyze['state'] = NORMAL
     btn_merge['state'] = NORMAL
@@ -325,7 +347,7 @@ def make_list_unknown_words_clicked():
 # starts the process of the text analysis
 def run_analyze():
     try:
-        lbl_warning.configure(text='Wait till completed')
+        lbl_warning_var.set('Wait till completed')
         lbl_warning.update()
 
         btn_analyze['state'] = DISABLED
@@ -337,19 +359,16 @@ def run_analyze():
             input_text = f.read()
         all_words_list = split_text(input_text)
         input_text_length = len(input_text)
-        lbl_warning.configure(text=f"The text length is {input_text_length} characters")
+        lbl_warning_var.set(f"The text length is {input_text_length} characters")
         lbl_warning.update()
-        time.sleep(0.5)
 
-        window_output = '1 of 3 is completed'
-        lbl_run_status.config(text=window_output)
+
+        lbl_run_status_var.set("1 of 3 is completed")
         lbl_run_status.update()
-        time.sleep(0.5)
 
         count_word_list_of_tuples = group_same_words(all_words_list)
-        lbl_run_status.config(text='2 of 3 is completed')
+        lbl_run_status_var.set('2 of 3 is completed')
         lbl_run_status.update()
-        time.sleep(0.5)
 
         with open('output-new.txt', 'w', encoding='utf8') as f:
             for key in count_word_list_of_tuples:
@@ -358,40 +377,44 @@ def run_analyze():
             # debug
             # print("last item in output_new is ",count_word_list_of_tuples[-1])
 
-        merge()
 
-        window_output = 'Writing into the file'
-        lbl_run_status.config(text=window_output)
+
+        lbl_run_status_var.set('Completed. Check base.txt')
         lbl_run_status.update()
+        lbl_status_var.set('')
+        lbl_status.update()
 
-        window_output = 'Completed. Check base.txt'
-        lbl_run_status.config(text=window_output)
-        lbl_status.config(text='')
+        lbl_warning_var.set("Build your own vocabulary list \nto make language learning easier")
+        lbl_warning.update()
 
         btn_analyze['state'] = NORMAL
         btn_merge['state'] = NORMAL
         btn_help['state'] = NORMAL
         btn_get_unknown_words['state'] = NORMAL
-    except:
+    except Exception as e:
         window_help = tk.Tk()
         window_help.title('Error')
-        lbl_help = Label(window_help, text="Something is wrong. Check help.txt, each file must exist",justify=LEFT)
+        lbl_help = Label(window_help, text=f"Something is wrong. Check help.txt, each file must exist\n{e}",justify=LEFT)
         lbl_help.pack()
 
 if __name__ == "__main__":
     try:
         root = Tk()
-        root.title("Vocabulary Builder v. 3.0 by Cafe p\'Aguantarme")
+        root.title("Vocabuilder v. 3.0 by Cafe p\'Aguantarme")
         root.config(bg='White')
+        root.geometry("200x210")
 
         root.iconbitmap('logo.ico')
+        lbl_warning_var = StringVar()
+        lbl_status_var = StringVar()
+        lbl_run_status_var = StringVar()
 
-        text1 = 'Build your own vocabulary list \nto make language learning easier'
-        lbl_warning = Label(root, bg="#ACFDF8", fg='#228987', text=text1)
+        lbl_warning_var.set('Build your own vocabulary list \nto make language learning easier')
+        lbl_warning = Label(root, bg="White", fg='#228987', textvariable=lbl_warning_var)
         lbl_warning.pack(side=BOTTOM, fill=X)
-        lbl_status = Label(root, bg="#ACFDF8", fg='#228987', text="Run status")
+        lbl_status = Label(root, bg="White", fg='#228987', textvariable=lbl_status_var)
         lbl_status.pack(side=BOTTOM, fill=X)
-        lbl_run_status = Label(root, bg="#ACFDF8", fg='#228987', )
+        lbl_run_status = Label(root, bg="White", fg='#228987', textvariable=lbl_run_status_var)
         lbl_run_status.pack(side=BOTTOM, fill=X)
 
         frame_btn = Frame(root, bg="#66CDAA", )

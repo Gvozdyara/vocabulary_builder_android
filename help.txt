@@ -1,0 +1,39 @@
+Paste a text into input.txt to analyze vocabulary, save and close the file.
+
+The text vocabulary will be placed into output-new.txt, so the file's content will be replaced. 
+
+The base.txt will be updated - new vocabulary will be added to the existent vocabulary list. 
+
+Make sure you save base.txt elsewhere or clean the file if you don't want to mix the vocabulary lists.
+
+Click the ANALYZE button to start.
+
+
+In case you want to merge two bases - save one base.txt file as ouput-new.txt in the program directory,
+
+place the other base.txt into the program directory. Try not to edit base.txt or problems may come.
+
+You can make your own list of unknown words. To do so place a list of the words you know to known_words.txt
+
+each word on a new line.
+
+All .txt files used in this program should be encoded with UTF8.
+
+
+Once you get the output-new.txt open it in Excel and copy the words you know into another file and save it.
+
+This list you may place into the known_words.txt file. After that click on the New Words button and Vocabuilder
+
+will compare known_words with base.txt and give you list of the uknown words. You can find the list in the 
+
+unknown_words.txt. 
+
+
+If you click Translate button Vocabuilder will translate the first 100 of the unknown_words and place the translation
+
+into translated words.txt. Take these words and add them to your AnkiDroid carddeck and improve your vocabulary!
+
+
+
+
+
